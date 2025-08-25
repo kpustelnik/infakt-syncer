@@ -8,6 +8,9 @@ from pydantic import TypeAdapter
 from helpers import Paginator, dump_to_file
 from models.InfaktAccountEvents import InfaktAccountEvent, InfaktAccountEventsResponse, InfaktAccountEventsIgnoreFields
 from models.InfaktAccountDetails import InfaktAccountDetails, InfaktAccountDetailsIgnoreFields
+from models.InfaktAccountDetails import InfaktClientEntity, InfaktClientsResponse, InfaktClientEntityDetails
+from models.InfaktAccountDetails import InfaktProductEntity, InfaktProductsResponse, InfaktProductEntityDetails
+from models.InfaktAccountDetails import InfaktBankAccountEntity, InfaktBankAccountsResponse, InfaktBankAccountEntityDetails
 
 class AccountDetailsDownloader():
   def __init__(self, logger: logging.Logger, infakt_session: requests.Session):
@@ -75,3 +78,6 @@ class AccountDetailsDownloader():
   async def download(self):
     await self.download_account_details()
     await self.download_account_events()
+    await self.download_listed_data('PRODUCTS', 'https://api.infakt.pl/api/v3/products', entity_model=InfaktProductEntity, response_model=InfaktProductsResponse, entity_details_model=InfaktProductEntityDetails)
+    await self.download_listed_data('BANK_ACCOUNTS', 'https://api.infakt.pl/api/v3/bank_accounts', entity_model=InfaktBankAccountEntity, response_model=InfaktBankAccountsResponse, entity_details_model=InfaktBankAccountEntityDetails)
+    await self.download_listed_data('CLIENTS', 'https://api.infakt.pl/api/v3/clients', entity_model=InfaktClientEntity, response_model=InfaktClientsResponse, entity_details_model=InfaktClientEntityDetails)

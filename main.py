@@ -13,11 +13,11 @@ from pypaperless import Paperless
 from pypaperless.models.common import TaskStatusType
 from git import Repo
 
-from helpers import Paginator
+from helpers import Paginator, merge_pdfs
 from models.InfaktCosts import InfaktCostsResponse, InfaktCostEntityDetailed
-from pdf_merge import merge_pdfs
 from AccountDetailsDownloader import AccountDetailsDownloader
 from AccountingDownloader import AccountingDownloader
+from InvoicesDownloader import InvoicesDownloader
 
 load_dotenv() # Load the dotenv
 

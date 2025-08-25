@@ -2,6 +2,7 @@ from datetime import date, datetime
 from enum import Enum, IntEnum
 from typing import Optional, List
 from pydantic import BaseModel, field_validator
+from pydantic_extra_types.currency_code import Currency
 from models.InfaktPaginateResponseMetainfo import InfaktPaginateResponseMetainfo
 
 class InfaktCostEntitySource(str, Enum):
@@ -73,7 +74,7 @@ class InfaktCostEntity(BaseModel, extra='forbid'):
   net_price: Optional[int]
   gross_price: Optional[int]
   tax_price: Optional[int]
-  currency: Optional[str]
+  currency: Optional[Currency]
   accounted_at: Optional[date]
   issue_date: Optional[date]
   received_date: Optional[date]

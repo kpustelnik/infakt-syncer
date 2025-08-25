@@ -4,3 +4,5 @@ requests
 pydantic
 GitPython
 pypdf
+pydantic-extra-types
+pycountry

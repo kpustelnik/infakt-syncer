@@ -22,12 +22,12 @@ class InfaktAccountingEntityTaxOffice(BaseModel, extra='forbid'):
   bank_name: str
   account_number: str
 
-class InfaktAccountingEntityExtentionPayments(BaseModel, extra='forbid'):
+class InfaktAccountingEntityExtensionPayments(BaseModel, extra='forbid'):
   enabled: bool
   pragma_offer_details_link: Optional[str] = None
 
-class InfaktAccountingEntityExtentions(BaseModel, extra='forbid'):
-  payments: InfaktAccountingEntityExtentionPayments
+class InfaktAccountingEntityExtensions(BaseModel, extra='forbid'):
+  payments: InfaktAccountingEntityExtensionPayments
 
 # SAF V7
 
@@ -56,7 +56,7 @@ class InfaktSAFV7Response(BaseModel, extra='forbid'):
 
 class InfaktSAFV7EntityDetails(InfaktSAFV7EntityShared):
   tax_office: InfaktAccountingEntityTaxOffice
-  extensions: InfaktAccountingEntityExtentions
+  extensions: InfaktAccountingEntityExtensions
 
 # VAT EU
 
@@ -124,7 +124,7 @@ class InfaktIncomeTaxEntityDetails(InfaktIncomeTaxEntityShared):
   incremental_health_insurance_price: int
   tax_paid_in_year_price: Optional[int] = None
   tax_office: InfaktAccountingEntityTaxOffice
-  extensions: InfaktAccountingEntityExtentions
+  extensions: InfaktAccountingEntityExtensions
 
 # Book (KPiR)
 
@@ -211,4 +211,4 @@ class InfaktInsuranceEntityDetails(InfaktInsuranceEntityShared):
   social_account_number: str
   health_account_number: str
   work_account_number: str
-  extensions: InfaktAccountingEntityExtentions
+  extensions: InfaktAccountingEntityExtensions

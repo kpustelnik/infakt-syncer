@@ -2,6 +2,11 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime, date
 from typing import Optional, List
 from enum import Enum
+from pydantic_extra_types.currency_code import Currency
+from pydantic_extra_types.country import CountryAlpha2
+from models.InfaktInvoices import InfaktInvoiceEntityBusinessActivityKind
+
+from models.InfaktPaginateResponseMetainfo import InfaktPaginateResponseMetainfo
 
 class InfaktAccountDataRole(str, Enum):
   OWNER = 'owner'
@@ -143,33 +148,33 @@ class InfaktAmlProcess(BaseModel, extra='forbid'):
   in_progress: bool
   completed: bool
 
-class InfaktExtentionAmbassadorDetails(BaseModel, extra='forbid'):
+class InfaktExtensionAmbassadorDetails(BaseModel, extra='forbid'):
   link: str
   pending_withdraw: int
 
-class InfaktExtentionAmbassador(BaseModel, extra='forbid'):
+class InfaktExtensionAmbassador(BaseModel, extra='forbid'):
   name: str
   active: bool
-  details: InfaktExtentionAmbassadorDetails
+  details: InfaktExtensionAmbassadorDetails
 
-class InfaktExtentionKsef(BaseModel, extra='forbid'):
-  name: str
-  active: bool
-
-class InfaktExtentionMerit(BaseModel, extra='forbid'):
+class InfaktExtensionKsef(BaseModel, extra='forbid'):
   name: str
   active: bool
 
-class InfaktExtentionAutopay(BaseModel, extra='forbid'):
+class InfaktExtensionMerit(BaseModel, extra='forbid'):
+  name: str
+  active: bool
+
+class InfaktExtensionAutopay(BaseModel, extra='forbid'):
   name: str
   max_single_transaction_limit_in_cents: int
   integration_confirmed: bool
 
-class InfaktExtentions(BaseModel, extra='forbid'):
-  ambassador: InfaktExtentionAmbassador
-  ksef: InfaktExtentionKsef
-  merit: InfaktExtentionMerit
-  autopay: InfaktExtentionAutopay
+class InfaktExtensions(BaseModel, extra='forbid'):
+  ambassador: InfaktExtensionAmbassador
+  ksef: InfaktExtensionKsef
+  merit: InfaktExtensionMerit
+  autopay: InfaktExtensionAutopay
 
 class InfaktAccountDetails(BaseModel, extra='forbid'):
   account_data: InfaktAccountData
@@ -179,8 +184,104 @@ class InfaktAccountDetails(BaseModel, extra='forbid'):
   accounting_office_service: InfaktAccountingOfficeService
   foundation_process: InfaktFoundationProcess
   aml_process: InfaktAmlProcess
-  extentions: InfaktExtentions
+  extentions: InfaktExtensions
 
 InfaktAccountDetailsIgnoreFields = {
   'current_subscription': {'days_until_expiration'}
 }
+
+# Bank Accounts
+class InfaktBankAccountEntityShared(BaseModel, extra='forbid'):
+  id: int
+  bank_name: str
+  account_number: str
+  swift: str
+  default: bool
+  currency: Currency
+  custom_name: Optional[str] = None
+
+class InfaktBankAccountEntity(InfaktBankAccountEntityShared):
+  pass
+
+class InfaktBankAccountsResponse(BaseModel, extra='forbid'):
+  metainfo: InfaktPaginateResponseMetainfo
+  entities: List[InfaktBankAccountEntity]
+
+class InfaktBankAccountEntityDetails(InfaktBankAccountEntityShared):
+  pass
+
+# Products
+
+class InfaktProductEntityShared(BaseModel, extra='forbid'):
+  id: int
+  name: str
+  symbol: Optional[str] = None
+  pkwiu: Optional[str] = None
+  cn: Optional[str] = None
+  pkob: Optional[str] = None
+  unit: Optional[str] = None
+  tax_symbol: str
+  flat_rate_tax_symbol: Optional[str] = None
+  quantity: int
+  net_price: int
+  tax_price: int
+  gross_price: int
+  unit_net_price: int
+  purchase_unit_net_price: int
+  purchase_unit_gross_price: int
+  discount: str
+  unit_net_price_before_discount: int
+  gtu_id: Optional[str] = None # TODO: Confirm type
+
+class InfaktProductEntity(InfaktProductEntityShared):
+  pass
+
+class InfaktProductsResponse(BaseModel, extra='forbid'):
+  metainfo: InfaktPaginateResponseMetainfo
+  entities: List[InfaktProductEntity]
+
+class InfaktProductEntityDetails(InfaktProductEntityShared):
+  pass
+
+# Clients
+
+class InfaktClientEntityShared(BaseModel, extra='forbid'):
+  id: int
+  uuid: str
+  company_name: str
+  street: str
+  street_number: str
+  flat_number: str
+  city: str
+  country: CountryAlpha2
+  country_full_name: str
+  postal_code: str
+  nip: str
+  phone_number: Optional[str] = None
+  web_site: Optional[str] = None
+  email: Optional[str] = None
+  note: str
+  receiver: str
+  mailing_company_name: str
+  mailing_street: str
+  mailing_city: str
+  mailing_postal_code: str
+  days_to_payment: str
+  payment_method: str
+  invoice_note: str
+  same_forward_address: bool
+  first_name: Optional[str] = None
+  last_name: Optional[str] = None
+  business_activity_kind: InfaktInvoiceEntityBusinessActivityKind
+  is_vindicable: bool
+  vindicable_invoices_count: int
+
+class InfaktClientEntity(InfaktClientEntityShared):
+  pass
+
+class InfaktClientsResponse(BaseModel, extra='forbid'):
+  metainfo: InfaktPaginateResponseMetainfo
+  entities: List[InfaktClientEntity]
+
+class InfaktClientEntityDetails(InfaktClientEntityShared):
+  pass
