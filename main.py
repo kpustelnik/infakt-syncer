@@ -17,12 +17,6 @@ from models.InfaktUpload import InfaktUploadResponse
 from models.InfaktAccountEvents import InfaktAccountEventsResponse
 from pdf_merge import merge_pdfs
 
-# Temporary fix (pypaperless)
-# https://github.com/tb1337/paperless-api/pull/483
-from pypaperless.models.documents import Document
-Document.__annotations__["created"] = datetime | None
-Document.__dataclass_fields__["created"].type = datetime | None
-
 load_dotenv() # Load the dotenv
 
 paperless = Paperless(
