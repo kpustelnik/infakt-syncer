@@ -3,12 +3,18 @@ from datetime import datetime, date
 from typing import Optional, List
 from enum import Enum
 
+class InfaktAccountDataRole(str, Enum):
+  OWNER = 'owner'
+  COLLABORATOR = 'collaborator'
+  EMPLOYEE = 'employee'
+  INVOICER = 'invoicer'
+
 class InfaktAccountData(BaseModel, extra='forbid'):
   uuid: str
   email: str
   username: str
   site: str
-  role: str
+  role: InfaktAccountDataRole
   registered_at: datetime
 
   @field_validator('registered_at', mode='before')
@@ -39,11 +45,24 @@ class InfaktCompanyData(BaseModel, extra='forbid'):
   mailing_postal_code: Optional[str] = None
   business_activity_code: str
 
+class InfaktSubscriptionDataType(str, Enum):
+  FREE = 'free'
+  PDK = 'pdk'
+  OBR_SELF_EMPLOYED_FOUNDATION = 'obr_self_employed_foundation'
+  OBR_SELF_EMPLOYED = 'obr_self_employed'
+  OBR_COPARTNERSHIP = 'obr_copartnership'
+  OBR_COPARTNERSHIP_FOUNDATION = 'obr_copartnership_foundation'
+  UNKNOWN = 'unknown'
+  TRIAL = 'trial'
+  BASIC_PACKAGE = 'basic_package'
+  OPTIMUM_PACKAGE = 'optimum_package'
+  PREMIUM_PACKAGE = 'premium_package'
+
 class InfaktSubscriptionData(BaseModel, extra='forbid'):
   name: str
   expired_on: date
-  days_until_expiration: int # Ignore?
-  user_type_symbol: str
+  days_until_expiration: int
+  user_type_symbol: InfaktSubscriptionDataType
   recurring_payment: bool
 
 class InfaktAccountingSettingsStatus(str, Enum):
@@ -67,6 +86,7 @@ class InfaktAccountingVatSalesValue(str, Enum):
 class InfaktAccountingVatSales(BaseModel, extra='forbid'):
   value: InfaktAccountingVatSalesValue
   label: str
+  ratio: int
 
 class InfaktAccountingVatMethodValue(str, Enum):
   MEMORIAL = 'memorial'
@@ -77,6 +97,7 @@ class InfaktAccountingVatMethod(BaseModel, extra='forbid'):
 
 class InfaktAccountingZusValue(str, Enum):
   STANDARD = 'standard_zus'
+  CUTTED = 'cutted_zus' # ZUS obniżony
 
 class InfaktAccountingZus(BaseModel, extra='forbid'):
   value: InfaktAccountingZusValue
@@ -91,13 +112,13 @@ class InfaktAccountingSettings(BaseModel, extra='forbid'):
   vat_method: InfaktAccountingVatMethod
   started_at_in_infakt: date
   business_activity_code: str
-  insurance_fee_account_number: str
-  individual_tax_account_number: str
+  insurance_fee_account_number: Optional[str] = None
+  individual_tax_account_number: Optional[str] = None
   zus: InfaktAccountingZus
 
 class InfaktAccountingOfficeService(BaseModel, extra='forbid'):
   active: bool
-  last_accounted_month: date
+  last_accounted_month: Optional[date] = None
   service_global_name: str
 
 class InfaktFoundationProcessObrType(str, Enum):
@@ -153,8 +174,13 @@ class InfaktExtensions(BaseModel, extra='forbid'):
 class InfaktAccountDetails(BaseModel, extra='forbid'):
   account_data: InfaktAccountData
   company_data: InfaktCompanyData
+  current_subscription: InfaktSubscriptionData
   accounting_settings: InfaktAccountingSettings
   accounting_office_service: InfaktAccountingOfficeService
   foundation_process: InfaktFoundationProcess
   aml_process: InfaktAmlProcess
-  extensions: InfaktExtensions
+  extentions: InfaktExtensions
+
+InfaktAccountDetailsIgnoreFields = {
+  'current_subscription': {'days_until_expiration'}
+}

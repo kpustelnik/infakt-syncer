@@ -139,3 +139,5 @@ class InfaktAccountEventsResponse(BaseModel, extra='forbid'):
   total_count: int
   count: int
   entities: List[InfaktAccountEvent]
+
+InfaktAccountEventsIgnoreFields = {}
