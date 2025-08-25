@@ -12,60 +12,61 @@ from dotenv import load_dotenv
 from pypaperless import Paperless
 from pypaperless.models.common import TaskStatusType
 from git import Repo
+from typing import List
 
-from Paginator import Paginator
+from helpers import Paginator
 from models.InfaktCosts import InfaktCostsResponse, InfaktCostEntityDetailed
 from models.InfaktUpload import InfaktUploadResponse
-from models.InfaktAccountEvents import InfaktAccountEventsResponse
+from models.InfaktAccountEvents import InfaktAccountEventsResponse, InfaktAccountEvent
+from models.InfaktAccountDetails import InfaktAccountDetails
 from pdf_merge import merge_pdfs
+from AccountDetailsDownloader import AccountDetailsDownloader
 
 load_dotenv() # Load the dotenv
 
-paperless = Paperless(
-  url=os.getenv('PAPERLESS_URL'),
-  token=os.getenv('PAPERLESS_TOKEN')
-)
+# Setup the logger
+logger = logging.getLogger("log")
+logger.setLevel(logging.INFO)
 
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter("[{asctime}] [{levelname:<8}] {name}: {message}", "%Y-%m-%d %H:%M:%S", style="{"))
+file_handler = RotatingFileHandler(
+  'logs/usage.log',
+  maxBytes=25*1024*1024,
+  backupCount=5
+)
+file_handler.setFormatter(logging.Formatter("[{asctime}] [{levelname:<8}] {name}: {message}", "%Y-%m-%d %H:%M:%S", style="{"))
+logger.addHandler(handler)
+logger.addHandler(file_handler)
+
+# Init paperless
+paperless = None
+if os.getenv('PAPERLESS_URL') is not None and os.getenv('PAPERLESS_TOKEN') is not None:
+  paperless = Paperless(
+    url=os.getenv('PAPERLESS_URL'),
+    token=os.getenv('PAPERLESS_TOKEN')
+  )
+else:
+  logger.info('Not setting up paperless due to lack of credentials.')
+
+# Set up InFakt session
 infakt_session = requests.Session()
 infakt_session.headers.update({
   "X-inFakt-ApiKey": os.getenv('INFAKT_API_KEY')
 })
 
-# Set up the folder
+# Prepare the data folder
 if not os.path.exists('data'):
   os.mkdir('data')
-  data_repo = Repo.init('data')
+# Init the git repo
+data_repo = Repo.init('data')
 
 async def main():
-  async with paperless:
-    events = []
-    for events_result in Paginator(infakt_session, 'https://api.infakt.pl/api/v3/account/activities.json'):
-      parsed_events: InfaktAccountEventsResponse = InfaktAccountEventsResponse.model_validate(events_result.json())
-      
-      if len(parsed_events.entities) == 0:
-        break
-      # parsed_events
-    '''
-    while True:
-      result = requests.get(f'?limit=100&offset={i*100}', headers={
-          "accept": "application/json",
-          "X-inFakt-ApiKey": API_KEY
-      })
+  if paperless is not None: await paperless.initialize()
 
-      json_result = result.json()
-      entities = json_result.get('entities')
-      if len(entities) == 0:
-        break
-      for entity in entities:
-        events.append(entity)
+  await AccountDetailsDownloader(logger, infakt_session).download()
 
-      i += 1
-
-    file = open('data/account/events.json', "w+")
-    file.write(json.dumps(events, indent=2))
-    file.close()
-    '''
-
+  if paperless is not None: await paperless.close()
 
     return
     # Syncing the documents from paperless to InFakt
