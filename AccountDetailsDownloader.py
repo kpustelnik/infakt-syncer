@@ -2,7 +2,8 @@ import logging
 import os
 import time
 import requests
-from typing import List
+import re
+from typing import List, Dict
 from pydantic import TypeAdapter
 
 from helpers import Paginator, dump_to_file
@@ -98,6 +99,9 @@ class AccountDetailsDownloader():
       # Save the entities list
       dump_to_file(f'{dir_path}/list.json', TypeAdapter(List[entity_model]).dump_json(all_entities, indent=2, exclude_none=True))
   
+      entity_id_regex = re.compile(r'^(\d+)\.')
+      archived_entities_id: Dict[int, str] = { int(result.group(1)): x for x in os.listdir(f'{dir_path}/details') if (result := entity_id_regex.match(x)) is not None }
+
       for entity in all_entities:
         attempt: int = 0
         while True:
@@ -121,8 +125,19 @@ class AccountDetailsDownloader():
 
         parsed_entity_details = entity_details_model.model_validate(entity_details_result.json())
         
+        # Restore the path if already exists
+        if entity.id in archived_entities_id and archived_entities_id[entity.id] != f'{entity.id}.json':
+          os.rename(f'{dir_path}/details/{archived_entities_id[entity.id]}', f'{dir_path}/details/{entity.id}.json')
+
         # Save entity to file
         dump_to_file(f'{dir_path}/details/{entity.id}.json', parsed_entity_details.model_dump_json(indent=2, exclude_none=True))
+       
+      # Adjust deleted data names
+      deleted_entities_id = archived_entities_id.keys() - [entity.id for entity in all_entities]
+      for deleted_entity_id in deleted_entities_id:
+        target_name = f'{deleted_entity_id} (DELETED)'
+        if archived_entities_id[deleted_entity_id] != target_name:
+          os.rename(f'{dir_path}/details/{archived_entities_id[deleted_entity_id]}', f'{dir_path}/details/{target_name}.json')
 
       self.logger.info('Finished fetching account data - %s', category)
       return True

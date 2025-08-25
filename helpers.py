@@ -1,5 +1,6 @@
 import requests
 import time
+import re
 from typing import TypeVar
 from io import BytesIO
 from pypdf import PdfReader, PdfWriter
@@ -49,3 +50,5 @@ def merge_pdfs(pdf_bytes_list: list[bytes]) -> bytes:
   output_stream = BytesIO()
   writer.write(output_stream)
   return output_stream.getvalue()
+
+UUID_REGEX = re.compile(r'\b' + '-'.join([rf'[0-9a-fA-F]{x}' for x in [8, 4, 4, 4, 12]]) + r'\b')
