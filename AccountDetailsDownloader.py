@@ -25,7 +25,7 @@ class AccountDetailsDownloader():
       attempt: int = 0
       while True:
         attempt += 1
-        if attempt >= 3:
+        if attempt > 3:
           raise Exception('Exceeded maximum fetch attempts')
 
         account_details_result = self.infakt_session.get(f'https://api.infakt.pl/api/v3/account/details.json', headers={
@@ -73,6 +73,61 @@ class AccountDetailsDownloader():
       return True
     except Exception as e:
       self.logger.error('Failed to handle account events - %s %s', type(e), e)
+      return False
+    
+  async def download_listed_data(self, category: str, base_endpoint_url: str, response_model, entity_model, entity_details_model) -> bool:
+    dir_path: str = f'data/account/{category}'
+    try:
+      if not os.path.exists(dir_path): os.mkdir(dir_path)
+      if not os.path.exists(f'{dir_path}/details'): os.mkdir(f'{dir_path}/details')
+    except Exception as e:
+      self.logger.error('Failed to create directories required for account data handling - %s', category)
+      return False
+    
+    try:
+      all_entities = []
+      for data_result in Paginator(self.infakt_session, f'{base_endpoint_url}.json'):
+        parsed_data = response_model.model_validate(data_result.json())
+        if len(parsed_data.entities) == 0:
+          break
+        all_entities.extend(parsed_data.entities)
+
+      # Sort the data in ascending order basing on id
+      all_entities.sort(key=lambda x: x.id)
+
+      # Save the entities list
+      dump_to_file(f'{dir_path}/list.json', TypeAdapter(List[entity_model]).dump_json(all_entities, indent=2, exclude_none=True))
+  
+      for entity in all_entities:
+        attempt: int = 0
+        while True:
+          attempt += 1
+          if attempt > 3:
+            raise Exception('Exceeded maximum fetch attempts')
+
+          entity_details_result = self.infakt_session.get(f'{base_endpoint_url}/{entity.id}.json', headers={
+            "accept": "application/json"
+          })
+          if entity_details_result.status_code == 200:
+            break # Fetched successfully
+          elif entity_details_result.status_code == 429: # Ratelimited
+            retryAfter = entity_details_result.headers['Retry-After']
+            if retryAfter is not None:
+              self.logger.warning(f'Rate limited - waiting {retryAfter} seconds')
+              time.sleep(retryAfter)
+          else:
+            self.logger.warning(f'Received {entity_details_result.status_code} error - retrying in 1s')
+            time.sleep(1)
+
+        parsed_entity_details = entity_details_model.model_validate(entity_details_result.json())
+        
+        # Save entity to file
+        dump_to_file(f'{dir_path}/details/{entity.id}.json', parsed_entity_details.model_dump_json(indent=2, exclude_none=True))
+
+      self.logger.info('Finished fetching account data - %s', category)
+      return True
+    except Exception as e:
+      self.logger.error('Failed to handle account data - %s %s %s', category, type(e), e)
       return False
 
   async def download(self):
