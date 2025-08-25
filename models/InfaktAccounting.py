@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date, datetime
+from datetime import date as ddate, datetime
 from enum import Enum
 
 from models.InfaktPaginateResponseMetainfo import InfaktPaginateResponseMetainfo
@@ -8,7 +8,10 @@ from models.InfaktPaginateResponseMetainfo import InfaktPaginateResponseMetainfo
 class InfaktAccountingEntityStatus(str, Enum):
   DRAFT = 'draft'
   PAID = 'paid'
+  UNPAID = 'unpaid'
+  SENT = 'sent'
   PRINTED = 'printed'
+  NOT_APPLICABLE = 'not_applicable'
 
 class InfaktPeriodType(str, Enum):
   MONTH = 'M'
@@ -35,10 +38,10 @@ class InfaktSAFV7EntityShared(BaseModel, extra='forbid'):
   id: int
   uuid: str
   symbol: InfaktSAFV7Symbol
-  period: date
+  period: ddate
   period_name: str
   correction_counter: int
-  payment_date: date
+  payment_date: ddate
   tax_to_pay_price: int
   real_pay: int
   status: InfaktAccountingEntityStatus
@@ -53,7 +56,7 @@ class InfaktSAFV7Response(BaseModel, extra='forbid'):
 
 class InfaktSAFV7EntityDetails(InfaktSAFV7EntityShared):
   tax_office: InfaktAccountingEntityTaxOffice
-  extentions: InfaktAccountingEntityExtentions
+  extensions: InfaktAccountingEntityExtentions
 
 # VAT EU
 
@@ -63,11 +66,11 @@ class InfaktVATEUSymbol(str, Enum):
 class InfaktVATEUEntityShared(BaseModel, extra='forbid'):
   id: int
   symbol: InfaktVATEUSymbol
-  period: date
+  period: ddate
   period_name: str
   period_type: InfaktPeriodType
   correction_counter: int
-  payment_date: date
+  payment_date: ddate
   services_price: int
   sell_cargo_price: int
   purchase_cargo_price: int
@@ -93,20 +96,20 @@ class InfaktIncomeTaxEntityShared(BaseModel, extra='forbid'):
   id: int
   uuid: str
   symbol: str
-  period: date
+  period: ddate
   period_name: str
   period_type: InfaktPeriodType
   correction_counter: int
-  payment_date: date
+  payment_date: ddate
+  incremental_income_price: Optional[int] = None
+  incremental_cost_price: Optional[int] = None
+  period_proceeds_price: Optional[int] = None
+  incremental_proceeds_price: Optional[int] = None
   to_pay_price: int
   status: InfaktAccountingEntityStatus
   real_pay: int
 
 class InfaktIncomeTaxEntity(InfaktIncomeTaxEntityShared):
-  # incremental_income_price: int
-  # incremental_cost_price: int
-  # incremental_proceeds_price: int
-  # period_proceeds_price: int
   automatically_paid: bool
   automatically_paid_on: Optional[datetime] = None
 
@@ -116,24 +119,25 @@ class InfaktIncomeTaxResponse(BaseModel, extra='forbid'):
 
 class InfaktIncomeTaxEntityDetails(InfaktIncomeTaxEntityShared):
   period_income_price: int
+  period_cost_price: Optional[int] = None
   incremental_social_insurance_price: int
   incremental_health_insurance_price: int
+  tax_paid_in_year_price: Optional[int] = None
   tax_office: InfaktAccountingEntityTaxOffice
-  extentions: InfaktAccountingEntityExtentions
+  extensions: InfaktAccountingEntityExtentions
 
 # Book (KPiR)
 
 class InfaktBookEntityShared(BaseModel, extra='forbid'):
   id: int
-  period: date
+  period: ddate
   period_name: str
+
+class InfaktBookEntity(InfaktBookEntityShared):
   income_price: int
   expenses_price: int
   profit_price: int
   status: InfaktAccountingEntityStatus
-
-class InfaktBookEntity(InfaktBookEntityShared):
-  pass
 
 class InfaktBookResponse(BaseModel, extra='forbid'):
   metainfo: InfaktPaginateResponseMetainfo
@@ -144,17 +148,42 @@ class InfaktBookCompany(BaseModel, extra='forbid'):
   taxid: str
   full_address: str
 
+class InfaktBookTransfered(BaseModel, extra='forbid'):
+  income_cargo_services: int
+  income_others: int
+  income_summary: int
+  expense_cargo_material: int
+  expense_incidental: int
+  expense_salary: int
+  expense_others: int
+  expense_sum: int
+  expense_research: int
+
+class InfaktBookLine(InfaktBookTransfered):
+  # Below fields are none for "spis z natury"
+  ordinal: Optional[int] = None
+  date: Optional[ddate] = None
+  number: Optional[str] = None
+  client_name: Optional[str] = None
+  client_address: Optional[str] = None
+  description: str
+
 class InfaktBookEntityDetails(InfaktBookEntityShared):
-  date: date
+  date: ddate
   company: InfaktBookCompany
-  pass # TODO: Confirm if error is thrown!
+  transfered: InfaktBookTransfered
+  lines: List[InfaktBookLine]
 
 # Insurance
 
 class InfaktInsuranceEntityShared(BaseModel, extra='forbid'):
   id: int
+  uuid: str
+  period: ddate
   period_name: str
-  payment_date: date
+  correction: bool
+  correction_counter: int
+  payment_date: ddate
   social_amount_price: int
   health_amount_price: int
   work_amount_price: int
@@ -162,8 +191,14 @@ class InfaktInsuranceEntityShared(BaseModel, extra='forbid'):
   health_amount_paid: int
   work_amount_paid: int
   sum_amount_price: int
+  real_pay: int
   show_payment_option: bool
   status: InfaktAccountingEntityStatus
+  annual_settlement_amount_price: int
+  annual_settlement_amount_paid: int
+  show_annual_settlement: bool
+  automatically_paid: bool
+  automatically_paid_on: Optional[datetime] = None
 
 class InfaktInsuranceEntity(InfaktInsuranceEntityShared):
   pass
@@ -173,4 +208,7 @@ class InfaktInsuranceResponse(BaseModel, extra='forbid'):
   entities: List[InfaktInsuranceEntity]
 
 class InfaktInsuranceEntityDetails(InfaktInsuranceEntityShared):
-  pass
+  social_account_number: str
+  health_account_number: str
+  work_account_number: str
+  extensions: InfaktAccountingEntityExtentions
