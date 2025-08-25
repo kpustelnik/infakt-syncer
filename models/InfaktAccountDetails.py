@@ -143,33 +143,33 @@ class InfaktAmlProcess(BaseModel, extra='forbid'):
   in_progress: bool
   completed: bool
 
-class InfaktExtensionAmbassadorDetails(BaseModel, extra='forbid'):
+class InfaktExtentionAmbassadorDetails(BaseModel, extra='forbid'):
   link: str
   pending_withdraw: int
 
-class InfaktExtensionAmbassador(BaseModel, extra='forbid'):
+class InfaktExtentionAmbassador(BaseModel, extra='forbid'):
   name: str
   active: bool
-  details: InfaktExtensionAmbassadorDetails
+  details: InfaktExtentionAmbassadorDetails
 
-class InfaktExtensionKsef(BaseModel, extra='forbid'):
-  name: str
-  active: bool
-
-class InfaktExtensionMerit(BaseModel, extra='forbid'):
+class InfaktExtentionKsef(BaseModel, extra='forbid'):
   name: str
   active: bool
 
-class InfaktExtensionAutopay(BaseModel, extra='forbid'):
+class InfaktExtentionMerit(BaseModel, extra='forbid'):
+  name: str
+  active: bool
+
+class InfaktExtentionAutopay(BaseModel, extra='forbid'):
   name: str
   max_single_transaction_limit_in_cents: int
   integration_confirmed: bool
 
-class InfaktExtensions(BaseModel, extra='forbid'):
-  ambassador: InfaktExtensionAmbassador
-  ksef: InfaktExtensionKsef
-  merit: InfaktExtensionMerit
-  autopay: InfaktExtensionAutopay
+class InfaktExtentions(BaseModel, extra='forbid'):
+  ambassador: InfaktExtentionAmbassador
+  ksef: InfaktExtentionKsef
+  merit: InfaktExtentionMerit
+  autopay: InfaktExtentionAutopay
 
 class InfaktAccountDetails(BaseModel, extra='forbid'):
   account_data: InfaktAccountData
@@ -179,7 +179,7 @@ class InfaktAccountDetails(BaseModel, extra='forbid'):
   accounting_office_service: InfaktAccountingOfficeService
   foundation_process: InfaktFoundationProcess
   aml_process: InfaktAmlProcess
-  extentions: InfaktExtensions
+  extentions: InfaktExtentions
 
 InfaktAccountDetailsIgnoreFields = {
   'current_subscription': {'days_until_expiration'}

@@ -15,8 +15,7 @@ class AccountDetailsDownloader():
     self.infakt_session = infakt_session
 
     # Create the required folder
-    if not os.path.exists('data/account'):
-      os.mkdir('data/account')
+    if not os.path.exists('data/account'): os.mkdir('data/account')
 
   async def download_account_details(self) -> bool:
     try:
@@ -43,7 +42,10 @@ class AccountDetailsDownloader():
       parsed_account_details: InfaktAccountDetails = InfaktAccountDetails.model_validate(account_details_result.json())
       
       # Save to file
-      dump_to_file('data/account/details.json', parsed_account_details.model_dump_json(indent=2, exclude=InfaktAccountDetailsIgnoreFields))
+      dump_to_file('data/account/details.json', parsed_account_details.model_dump_json(indent=2, exclude=InfaktAccountDetailsIgnoreFields, exclude_none=True))
+
+      self.logger.info('Finished fetching account details')
+      return True
     except Exception as e:
       self.logger.error('Failed to handle account details - %s %s', type(e), e)
       return False
@@ -58,8 +60,14 @@ class AccountDetailsDownloader():
           break
         all_events.extend(parsed_events.entities)
 
+      # Sort the events in ascending order
+      all_events.sort(key=lambda x: x.performed_at)
+
       # Save to file
-      dump_to_file('data/account/events.json', TypeAdapter(List[InfaktAccountEvent]).dump_json(indent=2, exclude=InfaktAccountEventsIgnoreFields))
+      dump_to_file('data/account/events.json', TypeAdapter(List[InfaktAccountEvent]).dump_json(all_events, indent=2, exclude=InfaktAccountEventsIgnoreFields, exclude_none=True))
+      
+      self.logger.info('Finished fetching account events')
+      return True
     except Exception as e:
       self.logger.error('Failed to handle account events - %s %s', type(e), e)
       return False

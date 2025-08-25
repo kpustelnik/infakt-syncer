@@ -28,7 +28,9 @@ class Paginator():
     
     return results
 
-def dump_to_file(path: str, content: str):
-  file = open(path, 'w+')
+def dump_to_file(path: str, content: str | bytes):
+  if isinstance(content, bytes):
+    content = content.decode()
+  file = open(path, 'w+', encoding='utf-8')
   file.write(content)
   file.close()

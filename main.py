@@ -12,15 +12,12 @@ from dotenv import load_dotenv
 from pypaperless import Paperless
 from pypaperless.models.common import TaskStatusType
 from git import Repo
-from typing import List
 
 from helpers import Paginator
 from models.InfaktCosts import InfaktCostsResponse, InfaktCostEntityDetailed
-from models.InfaktUpload import InfaktUploadResponse
-from models.InfaktAccountEvents import InfaktAccountEventsResponse, InfaktAccountEvent
-from models.InfaktAccountDetails import InfaktAccountDetails
 from pdf_merge import merge_pdfs
 from AccountDetailsDownloader import AccountDetailsDownloader
+from AccountingDownloader import AccountingDownloader
 
 load_dotenv() # Load the dotenv
 
@@ -65,6 +62,7 @@ async def main():
   if paperless is not None: await paperless.initialize()
 
   await AccountDetailsDownloader(logger, infakt_session).download()
+  await AccountingDownloader(logger, infakt_session).download()
 
   if paperless is not None: await paperless.close()
 
