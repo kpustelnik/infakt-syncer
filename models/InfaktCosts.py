@@ -64,6 +64,8 @@ class InfaktCostKind(str, Enum):
   COST = 'cost'
   DOCUMENT_SCAN = 'document_scan'
   INTERNAL_EVIDENCE = 'internal_evidence'
+  WORK_FUND_EVIDENCE = 'work_fund_evidence'
+  HEALTH_FEE_EVIDENCE = 'health_fee_evidence'
 
 class InfaktCostEntity(BaseModel, extra='forbid'):
   uuid: str

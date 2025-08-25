@@ -1,4 +1,6 @@
 python-dotenv
-pypaperless==5.0.0
+pypaperless==5.1.0
 requests
 pydantic
+GitPython
+pypdf
