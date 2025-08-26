@@ -20,6 +20,7 @@ from models.InfaktCosts import InfaktCostsResponse, InfaktCostEntityDetailed
 from AccountDetailsDownloader import AccountDetailsDownloader
 from AccountingDownloader import AccountingDownloader
 from InvoicesDownloader import InvoicesDownloader
+from InvoicesUploader import InvoicesUploader
 
 load_dotenv() # Load the dotenv
 
@@ -65,9 +66,10 @@ async def main():
   if paperless is not None: await paperless.initialize()
 
   results: List[bool] = [
-    await AccountDetailsDownloader(logger, infakt_session, infakt_domain).download(),
-    await AccountingDownloader(logger, infakt_session, infakt_domain).download(),
-    await InvoicesDownloader(logger, infakt_session, infakt_domain).download()
+    await InvoicesUploader(logger, infakt_session, infakt_domain, paperless).process(),
+    await AccountDetailsDownloader(logger, infakt_session, infakt_domain, paperless).process(),
+    await AccountingDownloader(logger, infakt_session, infakt_domain, paperless).process(),
+    await InvoicesDownloader(logger, infakt_session, infakt_domain, paperless).process()
   ]
   all_success = all(results)
 

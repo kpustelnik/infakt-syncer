@@ -5,6 +5,7 @@ import time
 import requests
 from typing import List, Dict
 from pydantic import TypeAdapter
+from pypaperless import Paperless
 
 from helpers import Paginator, dump_to_file
 from models.InfaktAccounting import InfaktSAFV7Entity, InfaktSAFV7Response, InfaktSAFV7EntityDetails
@@ -14,10 +15,11 @@ from models.InfaktAccounting import InfaktIncomeTaxEntity, InfaktIncomeTaxRespon
 from models.InfaktAccounting import InfaktInsuranceResponse, InfaktInsuranceEntity, InfaktInsuranceEntityDetails
 
 class AccountingDownloader():
-  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str):
+  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str, paperless: Paperless):
     self.logger = logger
     self.infakt_session = infakt_session
     self.infakt_domain = infakt_domain
+    self.paperless = paperless
 
     # Create the required folder
     if not os.path.exists('data/accounting'): os.mkdir('data/accounting')
@@ -93,7 +95,7 @@ class AccountingDownloader():
       self.logger.error('Failed to handle accounting data - %s %s %s', category, type(e), e)
       return False
 
-  async def download(self) -> bool:
+  async def process(self) -> bool:
     results: List[bool] = [
       await self.download_accounting_data('JPK', f'{self.infakt_domain}/api/v3/saf_v7_files', response_model=InfaktSAFV7Response, entity_model=InfaktSAFV7Entity, entity_details_model=InfaktSAFV7EntityDetails),
       await self.download_accounting_data('VAT_EU', f'{self.infakt_domain}/api/v3/vat_eu_taxes', response_model=InfaktVATEUResponse, entity_model=InfaktVATEUEntity, entity_details_model=InfaktVATEUEntityDetails),

@@ -51,6 +51,9 @@ class InfaktInvoiceEntityExtensions(BaseModel, extra='forbid'):
 
 class InfaktInvoiceEntityKsefDataInvoiceKind(str, Enum):
   VAT = 'vat'
+  MARGIN = 'margin'
+  CORRECTIVE_INVOICE = 'corrective_invoice'
+  ADVANCE = 'advance'
 
 class InfaktInvoiceEntityKsefDataStatus(str, Enum):
   SUCCESS = 'success'
@@ -152,7 +155,7 @@ class InfaktInvoiceEntityShared(BaseModel, extra='forbid'):
   vat_exemption_reason: Optional[None] = None # TODO
   sale_type: InfaktInvoiceEntitySaleType
   invoice_date_kind: InfaktInvoiceEntitySaleDateKind
-  document_markings_ids: List[None] # TODO
+  document_markings_ids: List[str]
   transaction_kind_id: Optional[int] = None # TODO: Document?
   bdo_code: Optional[None] = None # TODO
   receipt_number: Optional[None] = None # TODO
@@ -179,7 +182,7 @@ class InfaktInvoiceEntityDetails(InfaktInvoiceEntityShared):
   extensions: InfaktInvoiceEntityExtensions
   ksef_data: Optional[InfaktInvoiceEntityKsefData] = None
 
-# Correction
+# Corrective Invoice
 
 class InfaktCorrectiveInvoiceKind(str, Enum):
   CORRECTION = 'correction'
@@ -207,7 +210,7 @@ class InfaktCorrectiveInvoiceService(BaseModel, extra='forbid'):
   correction: bool
 
 class InfaktCorrectiveInvoiceEntityShared(BaseModel, extra='forbid'):
-  id: id
+  id: int
   uuid: str
   number: str
   currency: Currency
@@ -251,7 +254,7 @@ class InfaktCorrectiveInvoiceEntityShared(BaseModel, extra='forbid'):
   vat_exemption_reason: Optional[None] = None # TODO
   sale_type: InfaktInvoiceEntitySaleType
   invoice_date_kind: InfaktInvoiceEntitySaleDateKind
-  document_markings_ids: List[None] # TODO
+  document_markings_ids: List[str]
   transaction_kind_id: Optional[int] = None # TODO: Document?
   bdo_code: Optional[None] = None # TODO
   receipt_number: Optional[None] = None # TODO

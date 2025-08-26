@@ -5,6 +5,7 @@ import requests
 import re
 from typing import List, Dict
 from pydantic import TypeAdapter
+from pypaperless import Paperless
 
 from helpers import Paginator, dump_to_file
 from models.InfaktAccountEvents import InfaktAccountEvent, InfaktAccountEventsResponse, InfaktAccountEventsIgnoreFields
@@ -14,10 +15,11 @@ from models.InfaktAccountDetails import InfaktProductEntity, InfaktProductsRespo
 from models.InfaktAccountDetails import InfaktBankAccountEntity, InfaktBankAccountsResponse, InfaktBankAccountEntityDetails
 
 class AccountDetailsDownloader():
-  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str):
+  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str, paperless: Paperless):
     self.logger = logger
     self.infakt_session = infakt_session
     self.infakt_domain = infakt_domain
+    self.paperless = paperless
 
     # Create the required folder
     if not os.path.exists('data/account'): os.mkdir('data/account')
@@ -147,7 +149,7 @@ class AccountDetailsDownloader():
       self.logger.error('Failed to handle account data - %s %s %s', category, type(e), e)
       return False
 
-  async def download(self) -> bool:
+  async def process(self) -> bool:
     results: List[bool] = [
       await self.download_account_details(),
       await self.download_account_events(),
