@@ -99,8 +99,8 @@ class AccountDetailsDownloader():
       # Save the entities list
       dump_to_file(f'{dir_path}/list.json', TypeAdapter(List[entity_model]).dump_json(all_entities, indent=2, exclude_none=True))
   
-      entity_id_regex = re.compile(r'^(\d+)\.')
-      archived_entities_id: Dict[int, str] = { int(result.group(1)): x for x in os.listdir(f'{dir_path}/details') if (result := entity_id_regex.match(x)) is not None }
+      entity_id_regex = re.compile(r'\b(\d+)\.')
+      archived_entities_id: Dict[int, str] = { int(result.group(1)): x for x in os.listdir(f'{dir_path}/details') if (result := entity_id_regex.search(x)) is not None }
 
       for entity in all_entities:
         attempt: int = 0
@@ -124,18 +124,19 @@ class AccountDetailsDownloader():
             time.sleep(1)
 
         parsed_entity_details = entity_details_model.model_validate(entity_details_result.json())
+        target_name: str = f'{entity.id}'
         
         # Restore the path if already exists
-        if entity.id in archived_entities_id and archived_entities_id[entity.id] != f'{entity.id}.json':
-          os.rename(f'{dir_path}/details/{archived_entities_id[entity.id]}', f'{dir_path}/details/{entity.id}.json')
+        if entity.id in archived_entities_id and archived_entities_id[entity.id] != f'{target_name}.json':
+          os.rename(f'{dir_path}/details/{archived_entities_id[entity.id]}', f'{dir_path}/details/{target_name}.json')
 
         # Save entity to file
-        dump_to_file(f'{dir_path}/details/{entity.id}.json', parsed_entity_details.model_dump_json(indent=2, exclude_none=True))
+        dump_to_file(f'{dir_path}/details/{target_name}.json', parsed_entity_details.model_dump_json(indent=2, exclude_none=True))
        
       # Adjust deleted data names
       deleted_entities_id = archived_entities_id.keys() - [entity.id for entity in all_entities]
       for deleted_entity_id in deleted_entities_id:
-        target_name = f'{deleted_entity_id} (DELETED)'
+        target_name: str = f'(DELETED) {deleted_entity_id}'
         if archived_entities_id[deleted_entity_id] != target_name:
           os.rename(f'{dir_path}/details/{archived_entities_id[deleted_entity_id]}', f'{dir_path}/details/{target_name}.json')
 
