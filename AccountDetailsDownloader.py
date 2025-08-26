@@ -14,9 +14,10 @@ from models.InfaktAccountDetails import InfaktProductEntity, InfaktProductsRespo
 from models.InfaktAccountDetails import InfaktBankAccountEntity, InfaktBankAccountsResponse, InfaktBankAccountEntityDetails
 
 class AccountDetailsDownloader():
-  def __init__(self, logger: logging.Logger, infakt_session: requests.Session):
+  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str):
     self.logger = logger
     self.infakt_session = infakt_session
+    self.infakt_domain = infakt_domain
 
     # Create the required folder
     if not os.path.exists('data/account'): os.mkdir('data/account')
@@ -29,7 +30,7 @@ class AccountDetailsDownloader():
         if attempt > 3:
           raise Exception('Exceeded maximum fetch attempts')
 
-        account_details_result = self.infakt_session.get(f'https://api.infakt.pl/api/v3/account/details.json', headers={
+        account_details_result = self.infakt_session.get(f'{self.infakt_domain}/api/v3/account/details.json', headers={
           "accept": "application/json"
         })
         if account_details_result.status_code == 200:
@@ -58,7 +59,7 @@ class AccountDetailsDownloader():
     try:
       all_events: List[InfaktAccountEvent] = []
     
-      for events_result in Paginator(self.infakt_session, 'https://api.infakt.pl/api/v3/account/activities.json'):
+      for events_result in Paginator(self.infakt_session, f'{self.infakt_domain}/api/v3/account/activities.json'):
         parsed_events: InfaktAccountEventsResponse = InfaktAccountEventsResponse.model_validate(events_result.json())
         if len(parsed_events.entities) == 0:
           break
@@ -150,8 +151,8 @@ class AccountDetailsDownloader():
     results: List[bool] = [
       await self.download_account_details(),
       await self.download_account_events(),
-      await self.download_listed_data('PRODUCTS', 'https://api.infakt.pl/api/v3/products', entity_model=InfaktProductEntity, response_model=InfaktProductsResponse, entity_details_model=InfaktProductEntityDetails),
-      await self.download_listed_data('BANK_ACCOUNTS', 'https://api.infakt.pl/api/v3/bank_accounts', entity_model=InfaktBankAccountEntity, response_model=InfaktBankAccountsResponse, entity_details_model=InfaktBankAccountEntityDetails),
-      await self.download_listed_data('CLIENTS', 'https://api.infakt.pl/api/v3/clients', entity_model=InfaktClientEntity, response_model=InfaktClientsResponse, entity_details_model=InfaktClientEntityDetails)
+      await self.download_listed_data('PRODUCTS', f'{self.infakt_domain}/api/v3/products', entity_model=InfaktProductEntity, response_model=InfaktProductsResponse, entity_details_model=InfaktProductEntityDetails),
+      await self.download_listed_data('BANK_ACCOUNTS', f'{self.infakt_domain}/api/v3/bank_accounts', entity_model=InfaktBankAccountEntity, response_model=InfaktBankAccountsResponse, entity_details_model=InfaktBankAccountEntityDetails),
+      await self.download_listed_data('CLIENTS', f'{self.infakt_domain}/api/v3/clients', entity_model=InfaktClientEntity, response_model=InfaktClientsResponse, entity_details_model=InfaktClientEntityDetails)
     ]
     return all(results)

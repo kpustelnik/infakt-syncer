@@ -53,6 +53,7 @@ infakt_session = requests.Session()
 infakt_session.headers.update({
   "X-inFakt-ApiKey": os.getenv('INFAKT_API_KEY')
 })
+infakt_domain = os.getenv('INFAKT_API_DOMAIN') or 'https://api.infakt.pl'
 
 # Prepare the data folder
 if not os.path.exists('data'):
@@ -64,8 +65,9 @@ async def main():
   if paperless is not None: await paperless.initialize()
 
   results: List[bool] = [
-    await AccountDetailsDownloader(logger, infakt_session).download(),
-    await InvoicesDownloader(logger, infakt_session).download()
+    await AccountDetailsDownloader(logger, infakt_session, infakt_domain).download(),
+    await AccountingDownloader(logger, infakt_session, infakt_domain).download(),
+    await InvoicesDownloader(logger, infakt_session, infakt_domain).download()
   ]
   all_success = all(results)
 

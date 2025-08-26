@@ -14,9 +14,10 @@ from models.InfaktAccounting import InfaktIncomeTaxEntity, InfaktIncomeTaxRespon
 from models.InfaktAccounting import InfaktInsuranceResponse, InfaktInsuranceEntity, InfaktInsuranceEntityDetails
 
 class AccountingDownloader():
-  def __init__(self, logger: logging.Logger, infakt_session: requests.Session):
+  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str):
     self.logger = logger
     self.infakt_session = infakt_session
+    self.infakt_domain = infakt_domain
 
     # Create the required folder
     if not os.path.exists('data/accounting'): os.mkdir('data/accounting')
@@ -94,10 +95,10 @@ class AccountingDownloader():
 
   async def download(self) -> bool:
     results: List[bool] = [
-      await self.download_accounting_data('JPK', 'https://api.infakt.pl/api/v3/saf_v7_files', response_model=InfaktSAFV7Response, entity_model=InfaktSAFV7Entity, entity_details_model=InfaktSAFV7EntityDetails),
-      await self.download_accounting_data('VAT_EU', 'https://api.infakt.pl/api/v3/vat_eu_taxes', response_model=InfaktVATEUResponse, entity_model=InfaktVATEUEntity, entity_details_model=InfaktVATEUEntityDetails),
-      await self.download_accounting_data('REV_TAX', 'https://api.infakt.pl/api/v3/income_taxes', response_model=InfaktIncomeTaxResponse, entity_model=InfaktIncomeTaxEntity, entity_details_model=InfaktIncomeTaxEntityDetails),
-      await self.download_accounting_data('KPiR', 'https://api.infakt.pl/api/v3/books', response_model=InfaktBookResponse, entity_model=InfaktBookEntity, entity_details_model=InfaktBookEntityDetails),
-      await self.download_accounting_data('INSUR', 'https://api.infakt.pl/api/v3/insurance_fees', response_model=InfaktInsuranceResponse, entity_model=InfaktInsuranceEntity, entity_details_model=InfaktInsuranceEntityDetails)
+      await self.download_accounting_data('JPK', f'{self.infakt_domain}/api/v3/saf_v7_files', response_model=InfaktSAFV7Response, entity_model=InfaktSAFV7Entity, entity_details_model=InfaktSAFV7EntityDetails),
+      await self.download_accounting_data('VAT_EU', f'{self.infakt_domain}/api/v3/vat_eu_taxes', response_model=InfaktVATEUResponse, entity_model=InfaktVATEUEntity, entity_details_model=InfaktVATEUEntityDetails),
+      await self.download_accounting_data('REV_TAX', f'{self.infakt_domain}/api/v3/income_taxes', response_model=InfaktIncomeTaxResponse, entity_model=InfaktIncomeTaxEntity, entity_details_model=InfaktIncomeTaxEntityDetails),
+      await self.download_accounting_data('KPiR', f'{self.infakt_domain}/api/v3/books', response_model=InfaktBookResponse, entity_model=InfaktBookEntity, entity_details_model=InfaktBookEntityDetails),
+      await self.download_accounting_data('INSUR', f'{self.infakt_domain}/api/v3/insurance_fees', response_model=InfaktInsuranceResponse, entity_model=InfaktInsuranceEntity, entity_details_model=InfaktInsuranceEntityDetails)
     ]
     return all(results)
