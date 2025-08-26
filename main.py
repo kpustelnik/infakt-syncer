@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from pypaperless import Paperless
 from pypaperless.models.common import TaskStatusType
 from git import Repo
+from datetime import datetime
+from typing import List
 
 from helpers import Paginator, merge_pdfs
 from models.InfaktCosts import InfaktCostsResponse, InfaktCostEntityDetailed
@@ -56,15 +58,24 @@ infakt_session.headers.update({
 if not os.path.exists('data'):
   os.mkdir('data')
 # Init the git repo
-data_repo = Repo.init('data')
+data_repo: Repo = Repo.init('data')
 
 async def main():
   if paperless is not None: await paperless.initialize()
 
-  await AccountDetailsDownloader(logger, infakt_session).download()
-  await AccountingDownloader(logger, infakt_session).download()
+  results: List[bool] = [
+    await AccountDetailsDownloader(logger, infakt_session).download(),
+    await InvoicesDownloader(logger, infakt_session).download()
+  ]
+  all_success = all(results)
 
   if paperless is not None: await paperless.close()
+
+  # Stage all the changes
+  data_repo.git.add(A=True)
+  data_repo.index.commit(
+    message='Syncing InFakt at %s - %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S %z'), 'SUCCESS' if all_success else 'ERROR')
+  )
 
     return
     # Syncing the documents from paperless to InFakt

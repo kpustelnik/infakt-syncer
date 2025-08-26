@@ -145,9 +145,12 @@ class AccountDetailsDownloader():
       self.logger.error('Failed to handle account data - %s %s %s', category, type(e), e)
       return False
 
-  async def download(self):
-    await self.download_account_details()
-    await self.download_account_events()
-    await self.download_listed_data('PRODUCTS', 'https://api.infakt.pl/api/v3/products', entity_model=InfaktProductEntity, response_model=InfaktProductsResponse, entity_details_model=InfaktProductEntityDetails)
-    await self.download_listed_data('BANK_ACCOUNTS', 'https://api.infakt.pl/api/v3/bank_accounts', entity_model=InfaktBankAccountEntity, response_model=InfaktBankAccountsResponse, entity_details_model=InfaktBankAccountEntityDetails)
-    await self.download_listed_data('CLIENTS', 'https://api.infakt.pl/api/v3/clients', entity_model=InfaktClientEntity, response_model=InfaktClientsResponse, entity_details_model=InfaktClientEntityDetails)
+  async def download(self) -> bool:
+    results: List[bool] = [
+      await self.download_account_details(),
+      await self.download_account_events(),
+      await self.download_listed_data('PRODUCTS', 'https://api.infakt.pl/api/v3/products', entity_model=InfaktProductEntity, response_model=InfaktProductsResponse, entity_details_model=InfaktProductEntityDetails),
+      await self.download_listed_data('BANK_ACCOUNTS', 'https://api.infakt.pl/api/v3/bank_accounts', entity_model=InfaktBankAccountEntity, response_model=InfaktBankAccountsResponse, entity_details_model=InfaktBankAccountEntityDetails),
+      await self.download_listed_data('CLIENTS', 'https://api.infakt.pl/api/v3/clients', entity_model=InfaktClientEntity, response_model=InfaktClientsResponse, entity_details_model=InfaktClientEntityDetails)
+    ]
+    return all(results)
