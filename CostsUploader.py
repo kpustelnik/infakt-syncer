@@ -8,7 +8,7 @@ from io import BytesIO
 from models.InfaktUpload import InfaktUploadResponse, InfaktUploadEntity
 
 # Syncing the documents from Paperless-ngx to InFakt
-class InvoicesUploader():
+class CostsUploader():
   def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str, paperless: Optional[Paperless]):
     self.logger = logger
     self.infakt_session = infakt_session
