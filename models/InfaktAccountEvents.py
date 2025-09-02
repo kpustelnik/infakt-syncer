@@ -105,6 +105,7 @@ class InfaktAccountEventActionSymbol(str, Enum):
 class InfaktAccountEventDevice(str, Enum):
   WWW_APPLICATION = 'Aplikacja www'
   ANDROID = 'Android'
+  API_V3 = 'APIv3'
   NONE = ''
 
 class InfaktAccountEventBlameRole(str, Enum):

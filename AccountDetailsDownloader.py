@@ -3,7 +3,7 @@ import os
 import time
 import requests
 import re
-from typing import List, Dict
+from typing import List, Dict, Optional
 from pydantic import TypeAdapter
 from pypaperless import Paperless
 
@@ -15,7 +15,7 @@ from models.InfaktAccountDetails import InfaktProductEntity, InfaktProductsRespo
 from models.InfaktAccountDetails import InfaktBankAccountEntity, InfaktBankAccountsResponse, InfaktBankAccountEntityDetails
 
 class AccountDetailsDownloader():
-  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str, paperless: Paperless):
+  def __init__(self, logger: logging.Logger, infakt_session: requests.Session, infakt_domain: str, paperless: Optional[Paperless]):
     self.logger = logger
     self.infakt_session = infakt_session
     self.infakt_domain = infakt_domain

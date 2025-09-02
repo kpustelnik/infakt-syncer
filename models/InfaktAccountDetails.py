@@ -134,6 +134,7 @@ class InfaktFoundationProcessStatus(str, Enum):
 
 class InfaktFoundationProcess(BaseModel, extra='forbid'):
   in_progress: bool
+  self_service: bool
   completed: bool
   obr_type: InfaktFoundationProcessObrType
   current_step: InfaktFoundationProcessStatus
